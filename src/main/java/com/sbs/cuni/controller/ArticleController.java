@@ -148,7 +148,7 @@ public class ArticleController {
 
 			return "common/redirect";
 		}
-
+//
 		Map<String, Object> modifyRs = articleService.modify(param);
 
 		String msg = (String) modifyRs.get("msg");
