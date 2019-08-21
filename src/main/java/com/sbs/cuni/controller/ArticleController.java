@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.sbs.cuni.dto.Article;
 import com.sbs.cuni.dto.ArticleReply;
 import com.sbs.cuni.dto.Board;
+import com.sbs.cuni.dto.Member;
 import com.sbs.cuni.service.ArticleService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -80,10 +81,21 @@ public class ArticleController {
 	}
 
 	@RequestMapping("/article/add")
-	public String showAdd(long boardId, Model model) {
+	public String showAdd(long boardId, Model model, HttpServletRequest request) {
 		Board board = articleService.getBoard(boardId);
 
 		model.addAttribute("board", board);
+
+		// 오류 1번 수정 시작
+		Member loginedMember = (Member) request.getAttribute("loginedMember");
+
+		if (boardId == 1 && loginedMember.getPermissionLevel() != 1) {
+			model.addAttribute("alertMsg", "권한이 없습니다.");
+			model.addAttribute("historyBack", true);
+
+			return "common/redirect";
+		}
+		// 오류 수정 끝
 
 		return "article/add";
 	}
@@ -155,9 +167,30 @@ public class ArticleController {
 	}
 
 	@RequestMapping("/article/doDelete")
-	public String doDelete(Model model, @RequestParam Map<String, Object> param, HttpSession session, long id, long boardId) {
+	public String doDelete(Model model, @RequestParam Map<String, Object> param, HttpServletRequest request, long id,
+			long boardId) {
 		param.put("id", id);
 
+		boolean hasAPermmision = true;
+
+		Member loginedMember = (Member)request.getAttribute("loginedMember");
+
+		Article article = articleService.getOne(Maps.of("id", id));
+		boolean isWriter = article.getMemberId() == loginedMember.getId();
+
+		if ( loginedMember.getPermissionLevel() == 0 && isWriter == false ) {
+			hasAPermmision = false;
+		}
+
+		if ( hasAPermmision == false ) {
+			model.addAttribute("alertMsg", "권한이 없습니다.");
+			model.addAttribute("historyBack", true);
+
+			return "common/redirect";
+		}
+		
+		
+		
 		Map<String, Object> deleteRs = articleService.delete(param);
 
 		String msg = (String) deleteRs.get("msg");
