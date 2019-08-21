@@ -154,7 +154,7 @@ public class ArticleController {
 		String msg = (String) modifyRs.get("msg");
 		String resultCode = (String) modifyRs.get("resultCode");
 
-		//
+		//////
 		if (resultCode.startsWith("S-")) {
 			String redirectUrl = "/article/detail?id=" + id + "&boardId=" + boardId;
 			model.addAttribute("redirectUrl", redirectUrl);
